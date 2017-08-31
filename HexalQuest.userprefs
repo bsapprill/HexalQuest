@@ -1,0 +1,29 @@
+﻿<Properties StartupItem="Assembly-CSharp.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\PlayerShip.cs">
+    <Files>
+      <File FileName="Assets\Scripts\ShipConstructor.cs" Line="261" Column="2" NotebookId="1" />
+      <File FileName="Assets\Scripts\GridCell.cs" Line="30" Column="2" NotebookId="1" />
+      <File FileName="Assets\Scripts\GlobalData.cs" Line="7" Column="48" NotebookId="1" />
+      <File FileName="Assets\Scripts\MeshHandler.cs" Line="22" Column="2" NotebookId="1" />
+      <File FileName="Assets\Scripts\GridCoordinate.cs" Line="16" Column="17" NotebookId="1" />
+      <File FileName="Assets\Scripts\MeshMethods\MeshChanger.cs" Line="42" Column="4" NotebookId="1" />
+      <File FileName="Assets\Scripts\PlayerShip.cs" Line="26" Column="25" NotebookId="1" />
+    </Files>
+    <FloatingWindows>
+      <FloatingWindow WindowId="1" X="2389" Y="-11" Width="2880" Height="1706">
+        <Files>
+          <File FileName="..\..\HexalTactic\HexalTactic-master-99d34dba7eebd2fb082b5960cb7475be446a6ac0\HexalTactic1.1\Assets\Scripts\GameScript.cs" Line="99" Column="2" />
+          <File FileName="Assets\Scripts\MeshMethods\HullSection.cs" Line="1" Column="1" />
+          <File FileName="Assets\Scripts\MeshMethods\CellSection.cs" Line="1" Column="1" />
+          <File FileName="Assets\Scripts\MeshMethods\CellHub.cs" Line="1" Column="1" />
+          <File FileName="Assets\Scripts\MeshMethods\ShipCell.cs" Line="87" Column="11" />
+        </Files>
+      </FloatingWindow>
+    </FloatingWindows>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
