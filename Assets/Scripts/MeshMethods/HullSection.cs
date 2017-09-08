@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class HullSection : MonoBehaviour {
 	int sectionOrder;
-	bool isInnerHull = false;
-	MeshHandler mH = new MeshHandler();
+	public bool isInnerHull = false;
+	public MeshHandler mH = new MeshHandler();
 	MeshFilter mF;
 	MeshRenderer mR;
 
@@ -46,7 +46,7 @@ public class HullSection : MonoBehaviour {
 
 	#endregion
 
-	public void InitializeHullSection(){
+	public void InitializeHullSection(Color innerHullColor, Color outerHullColor){
 
 		if(GetComponentInParent<ShipCell>().hasCellNeighborAt.Contains(sectionOrder-1)){
 			isInnerHull = true;
@@ -60,10 +60,10 @@ public class HullSection : MonoBehaviour {
 		mR.material.shader = Shader.Find("Unlit/Color");
 
 		if(isInnerHull){			
-			mR.material.color = GlobalData.innerHullColor;
+			mR.material.color = innerHullColor;
 		}
 		else{
-			mR.material.color = GlobalData.outerHullColor;
+			mR.material.color = outerHullColor;
 		}
 
 		GetComponentInParent<ShipCell>().hullSectionObjs[sectionOrder-1] = gameObject;

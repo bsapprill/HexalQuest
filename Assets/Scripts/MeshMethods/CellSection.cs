@@ -42,14 +42,14 @@ public class CellSection : MonoBehaviour {
 		meshOffset = _meshOffset;
 	}
 
-	public void InitializeCellSection(){
+	public void InitializeCellSection(Color sectionColor, Color innerHullColor, Color outerHullColor){
 		mF = GetComponent<MeshFilter>();
 		mR = GetComponent<MeshRenderer>();
 		mH.SetMeshOffset(meshOffset);
 		mH.AssignSectionMeshData(sectionOrder);
 		mH.ReturnCompleteMesh(mF);
 		mR.material.shader = Shader.Find("Unlit/Color");
-		mR.material.color = GlobalData.sectionColor;
+		mR.material.color = sectionColor;
 
 		hullSection = new GameObject();
 		GetComponentInParent<ShipCell>().hullSectionObjs[sectionOrder-1] = hullSection;
@@ -59,7 +59,7 @@ public class CellSection : MonoBehaviour {
 		hullSection.AddComponent<HullSection>();
 		hullSection.GetComponent<HullSection>().SetSectionOrder(sectionOrder);
 		hullSection.GetComponent<HullSection>().SetMeshOffset(meshOffset);
-		hullSection.GetComponent<HullSection>().InitializeHullSection();
+		hullSection.GetComponent<HullSection>().InitializeHullSection(innerHullColor, outerHullColor);
 		hullSection.gameObject.name = "Hull "+(sectionOrder);
 	}
 }

@@ -7,6 +7,7 @@ public class ShipCell : MonoBehaviour {
 	GameObject[] cellSectionObjs = new GameObject[6];
 	public GameObject[] hullSectionObjs = new GameObject[6];
 	GameObject cellHub;
+	MeshRenderer hubRenderer;
 
 	public List<int> hasCellNeighborAt = new List<int>();
 	public Dictionary<GridCoordinate, ShipCell> neighborShipCells = new Dictionary<GridCoordinate, ShipCell>();
@@ -15,9 +16,12 @@ public class ShipCell : MonoBehaviour {
 
 	MeshChanger meshChanger;
 
-	public enum Customization {PowerCore, CommandBridge, WeaponModule, ShieldSystem,
-		                WarpDrive, SensorRelay, CrewQuarter, ImpulseEngine}
-	public Customization CustomizationType;
+	public bool hasCellUpgrade = false;
+	public CellUpgrade cellUpgrade;
+
+	Color innerHullColor;
+	Color outerHullColor;
+	Color sectionColor;
 
 	void Start(){
 		/*
@@ -42,6 +46,7 @@ public class ShipCell : MonoBehaviour {
 		cellHub.transform.SetParent(transform);
 		cellHub.AddComponent<MeshFilter>();
 		cellHub.AddComponent<MeshRenderer>();
+		hubRenderer = cellHub.GetComponent<MeshRenderer>();
 		cellHub.AddComponent<CellHub>();
 		cellHub.GetComponent<CellHub>().SetMeshOffset(meshOffset);
 		cellHub.GetComponent<CellHub>().InitializeCellHub();
@@ -66,46 +71,30 @@ public class ShipCell : MonoBehaviour {
 			cellSectionObjs[i].AddComponent<CellSection>();
 			cellSectionObjs[i].GetComponent<CellSection>().SetSectionOrder(i+1);
 			cellSectionObjs[i].GetComponent<CellSection>().SetMeshOffset(meshOffset);
-			cellSectionObjs[i].GetComponent<CellSection>().InitializeCellSection();
+			cellSectionObjs[i].GetComponent<CellSection>().InitializeCellSection(sectionColor, innerHullColor, outerHullColor);
 			cellSectionObjs[i].gameObject.name = "Section "+ (i+1);
 		}
 	}
 
-	public void UpdateCustomization(){
-		switch(CustomizationType){
-			case Customization.PowerCore:
-				
-				break;
-			case Customization.CommandBridge:
+	//This function will probably change over time.
+	//For now it just updates the hub color to match the upgrade type
+	public void UpdateCellHubVisuals(Color hubColor){
+		hubRenderer.material.color = hubColor;
+	}
 
-				break;
-			case Customization.WeaponModule:
-
-				break;
-			case Customization.ShieldSystem:
-
-				break;
-			case Customization.WarpDrive:
-
-				break;
-			case Customization.SensorRelay:
-
-				break;
-			case Customization.CrewQuarter:
-
-				break;
-			case Customization.ImpulseEngine:
-
-				break;
-		}
+	public void SetHullColors(Color[] colors){
+		innerHullColor = colors[0];
+		outerHullColor = colors[1];
+		sectionColor = colors[2];
 	}
 
 	public void UpdateHullSection(int order){
-		if(hasCellNeighborAt.Contains(order)){				
-			meshChanger.AlterInnerHull(hullSectionObjs[order],true);
+		if(hasCellNeighborAt.Contains(order)){
+			hullSectionObjs[order].GetComponent<HullSection>().isInnerHull = true;
+			meshChanger.AlterInnerHull(hullSectionObjs[order],true,innerHullColor,outerHullColor);
 		}
 		else{
-			meshChanger.AlterInnerHull(hullSectionObjs[order],false);
+			meshChanger.AlterInnerHull(hullSectionObjs[order],false,innerHullColor,outerHullColor);
 		}
 	}
 }

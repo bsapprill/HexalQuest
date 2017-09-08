@@ -15,7 +15,7 @@ public class MeshChanger{
 		objRenderer = objWithMesh.GetComponent<MeshRenderer>();
 	}
 
-	public void AlterInnerHull(GameObject _objToChange, bool hasNeighbor){
+	public void AlterInnerHull(GameObject _objToChange, bool hasNeighbor, Color innerHullColor, Color outerHullColor){
 		AssignMeshToChange(_objToChange);
 
 		List<Vector3> vertexList = new List<Vector3>();
@@ -31,7 +31,7 @@ public class MeshChanger{
 			vertexList[1] -= hullAdjustmentOne;
 			vertexList[2] -= hullAdjustmentTwo;
 
-			objRenderer.material.color = GlobalData.innerHullColor;
+			objRenderer.material.color = innerHullColor;
 		}
 		else{
 			Vector3 hullAdjustmentOne = (vertexList[1] - vertexList[0]);
@@ -40,7 +40,7 @@ public class MeshChanger{
 			vertexList[1] += hullAdjustmentOne;
 			vertexList[2] += hullAdjustmentTwo;
 
-			objRenderer.material.color = GlobalData.outerHullColor;
+			objRenderer.material.color = outerHullColor;
 		}
 
 		objMesh.SetVertices(vertexList);

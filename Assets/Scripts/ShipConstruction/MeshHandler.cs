@@ -112,6 +112,30 @@ public class MeshHandler{
 		}
 	}
 
+	//This is for building the 3D ship hull
+	public void AssignOuterHullMeshData(List<Vector3> outerHullVertices, float hullHeight){
+		InitializeDataLists();
+		vertices = outerHullVertices;
+		int initialVertexCount = vertices.Count;
+		for (int i = 0; i < initialVertexCount; i++) {
+			Vector3 upperHullHeight = new Vector3(0f,0f,hullHeight);
+			Vector3 upperHullVertex = vertices[i] + upperHullHeight;
+			vertices.Add(upperHullVertex);
+		}
+		for (int j = 0; j < initialVertexCount; j=j+2) {
+			triangles.Add(j);
+			triangles.Add(j+initialVertexCount+1);
+			triangles.Add(j+1);
+			triangles.Add(j);
+			triangles.Add(j+initialVertexCount);
+			triangles.Add(j+initialVertexCount+1);
+		}
+		for (int k = 0; k < vertices.Count; k++) {
+			uvs.Add(Vector2.zero);
+			normals.Add(Vector3.up);
+		}
+	}
+
     public void ReturnCompleteMesh(MeshFilter filter)
     {
         Mesh mesh = new Mesh();
@@ -122,6 +146,8 @@ public class MeshHandler{
         mesh.uv = uvs.ToArray();
         mesh.normals = normals.ToArray();
         mesh.triangles = triangles.ToArray();
+
+		mesh.RecalculateNormals();
 
         mF.sharedMesh = mesh;        
     }

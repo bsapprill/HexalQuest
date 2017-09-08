@@ -46,11 +46,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\CellNeighbor.cs" />
-     <Compile Include="Assets\Scripts\GlobalData.cs" />
-     <Compile Include="Assets\Scripts\GridCell.cs" />
-     <Compile Include="Assets\Scripts\GridCoordinate.cs" />
-     <Compile Include="Assets\Scripts\MeshHandler.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\CellUpgrade.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\CommandBridge.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\CrewQuarter.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\ImpulseEngine.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\PowerCore.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\SensorRelay.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\ShieldSystem.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\WarpDrive.cs" />
+     <Compile Include="Assets\Scripts\CellUpgrades\WeaponModule.cs" />
+     <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\MeshMethods\CellHub.cs" />
      <Compile Include="Assets\Scripts\MeshMethods\CellSection.cs" />
      <Compile Include="Assets\Scripts\MeshMethods\HexData.cs" />
@@ -58,8 +63,13 @@
      <Compile Include="Assets\Scripts\MeshMethods\HullSection.cs" />
      <Compile Include="Assets\Scripts\MeshMethods\MeshChanger.cs" />
      <Compile Include="Assets\Scripts\MeshMethods\ShipCell.cs" />
-     <Compile Include="Assets\Scripts\PlayerShip.cs" />
-     <Compile Include="Assets\Scripts\ShipConstructor.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\CellNeighbor.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\GlobalData.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\GridCell.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\GridCoordinate.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\MeshHandler.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\Ship.cs" />
+     <Compile Include="Assets\Scripts\ShipConstruction\ShipConstructor.cs" />
      <Compile Include="Assets\Scripts\TestingScript.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

@@ -8,11 +8,30 @@ public class ShipConstructor : MonoBehaviour {
 	public int gridDimensionX;
 	public int gridDimensionY;
 
+	int globalCellCount = 0;
+
 	GridCell[] GridCells;
 
 	ShipCell selectedShipCell;
 
-	GameObject playersShip;
+	public GameObject playersShipObj;
+	public float hullHeight;
+	Ship playersShip;
+
+	public Camera localCamera;
+
+	#region Constructor
+
+	public ShipConstructor (){
+		
+	}
+
+	#endregion
+
+	Dictionary<ShipCell,CellUpgrade> currentUpgradeList = new Dictionary<ShipCell, CellUpgrade>();
+
+	public enum Customization {PowerCore, CommandBridge, WeaponModule, ShieldSystem,
+							   WarpDrive, SensorRelay, CrewQuarter, ImpulseEngine}
 
 	#region Neighboring Values
 
@@ -24,6 +43,18 @@ public class ShipConstructor : MonoBehaviour {
 		new Vector2( 0,  1), new Vector2( 1, 0 ), new Vector2( 1, -1),
 		new Vector2( 0, -1), new Vector2(-1,  0), new Vector2( -1, 1)
 	};
+
+	#endregion
+
+	#region Color Data
+
+	[Serializable]
+	public class ColorDataHolder{
+		public Color[] UpgradeColors = new Color[8];
+		public Color[] HullColors = new Color[3];
+	}
+
+	public ColorDataHolder ColorData;
 
 	#endregion
 
@@ -56,6 +87,22 @@ public class ShipConstructor : MonoBehaviour {
 		[Serializable]
 		public class StatsPanelElements{
 			public GameObject panelObj;
+
+			public Text powerGridUsed;
+			public Text powerGridMax;
+
+			public Text crewAvailable;
+			public Text crewNeeded;
+
+			public Text warpSpeed;
+
+			public Text shipSpeed;
+
+			public Text sensorStrength;
+
+			public Text weaponPower;
+
+			public Text shieldPower;
 		}
 
 		public BuildStatePanelElements BuildStatePanel;
@@ -70,14 +117,80 @@ public class ShipConstructor : MonoBehaviour {
 	public void EnterHullEdit(){
 		UIData.BuildStatePanel.HullBuild.interactable = false;
 		UIData.BuildStatePanel.CellBuild.interactable = true;
+		if(selectedShipCell != null){
+			RevertSelectedShipCellTransform();
+		}
 		selectedShipCell = default(ShipCell);
 		SetStateBuildHullMode();
 	}
 		
 	public void EnterCellEdit(){
-		UIData.BuildStatePanel.HullBuild.interactable = false;
+		UIData.BuildStatePanel.HullBuild.interactable = true;
 		UIData.BuildStatePanel.CellBuild.interactable = false;
 		SetStateIdle();
+	}
+
+	public void UpdateUIStats(){
+
+		#region Power Grid
+
+		UIData.StatsPanel.powerGridUsed.text = "Used: "+playersShip.powerGridDemand;
+		UIData.StatsPanel.powerGridMax.text = "Max: "+playersShip.powerGridSupply;
+
+		bool powerGridOver = playersShip.powerGridDemand > playersShip.powerGridSupply;
+		if (powerGridOver) {
+			UIData.StatsPanel.powerGridUsed.color = Color.red;
+		}
+		else{
+			UIData.StatsPanel.powerGridUsed.color = Color.gray;
+		}
+
+		#endregion
+
+		#region Crew
+
+		UIData.StatsPanel.crewAvailable.text = "Have: "+playersShip.crewCount;
+		UIData.StatsPanel.crewNeeded.text = "Need: "+playersShip.crewDemand;
+
+		bool crewCountUnder = playersShip.crewCount < playersShip.crewDemand;
+		if (crewCountUnder) {
+			UIData.StatsPanel.crewNeeded.color = Color.red;
+		}
+		else{
+			UIData.StatsPanel.crewNeeded.color = Color.gray;
+		}
+
+		#endregion
+
+		#region Warp
+
+		UIData.StatsPanel.warpSpeed.text = "Speed: "+playersShip.GetWarpSpeed();
+
+		#endregion
+
+		#region Engine Speed
+
+		UIData.StatsPanel.shipSpeed.text = "Speed: "+playersShip.GetShipSpeed();
+
+		#endregion
+
+		#region Sensor
+
+		UIData.StatsPanel.sensorStrength.text = "Strength: "+playersShip.sensorStrength;
+
+		#endregion
+
+		#region Weapon
+
+		UIData.StatsPanel.weaponPower.text = "Power: "+playersShip.attackPower;
+
+		#endregion
+
+		#region Shield
+
+		UIData.StatsPanel.shieldPower.text = "Power: "+playersShip.shieldPower;	
+
+		#endregion
 	}
 
 	#endregion
@@ -85,7 +198,17 @@ public class ShipConstructor : MonoBehaviour {
 	#region Cell Customizers
 
 	public void ApplyCellCustomization(int i){
-		selectedShipCell.CustomizationType = (ShipCell.Customization)i;
+		selectedShipCell.UpdateCellHubVisuals(ColorData.UpgradeColors[i]);
+		if (selectedShipCell.hasCellUpgrade) {			
+			RemoveCustomization(selectedShipCell);
+			AddCustomization((Customization)i);
+		}
+		else{
+			AddCustomization((Customization)i);
+			selectedShipCell.hasCellUpgrade = true;
+		}
+		RevertSelectedShipCellTransform();
+		selectedShipCell = default(ShipCell);
 	}
 
 	#endregion
@@ -103,18 +226,10 @@ public class ShipConstructor : MonoBehaviour {
 	void Idle(){
 
 		if(Input.GetKeyDown(KeyCode.D)){
-			Vector3 curMosPos = ReturnCurrentMousePosition();
-			GridCoordinate gridCoord = ReturnCellGridCoordinate(curMosPos);
-			GridCell gridCell = GridCells[CoordToElement(gridCoord)];
-			for (int i = 0; i < gridCell.neighborCoordinates.Count; i++) {					
-				int testElement = CoordToElement(gridCell.neighborCoordinates[i]);
-				GridCell testCell = GridCells[testElement];
-				DebugCube(testCell.gridPosition);
-			}
 		}
 
 		if(Input.GetKeyDown(KeyCode.F)){
-			
+			LaunchShipIntoSpace();
 		}
 
 		if(Input.GetKeyDown(KeyCode.Alpha1)){
@@ -127,8 +242,13 @@ public class ShipConstructor : MonoBehaviour {
 			if(IsValidGridCell(gridCoord)){
 				GridCell gridCell = GridCells[CoordToElement(gridCoord)];
 				if(gridCell.hasShipCell){
-					if(selectedShipCell != gridCell.shipCellComponent){						
+					if(selectedShipCell != gridCell.shipCellComponent){
+						if(selectedShipCell != null){
+							RevertSelectedShipCellTransform();
+						}
 						selectedShipCell = gridCell.shipCellComponent;
+						selectedShipCell.gameObject.transform.position += new Vector3(0f,0f,-0.1f);
+						selectedShipCell.gameObject.transform.localScale = new Vector3(1.5f,1.5f);
 					}
 				}
 			}
@@ -183,15 +303,19 @@ public class ShipConstructor : MonoBehaviour {
 	void Start(){
 		GridCells = new GridCell[gridDimensionX*gridDimensionY];
 		BuildGrid();
-		BuildState = Construction.Idle;
+		BuildState = Construction.BuildHullMode;
 		AlignCameraToGridCenter();
 
 		stateMain.Add(Construction.Idle, new Action(Idle));
 		stateMain.Add(Construction.BuildHullMode, new Action(BuildHullMode));
 		stateMain.Add(Construction.CustomizeShipCell, new Action(CustomizeShipCell));
 
-		playersShip = new GameObject();
-		playersShip.AddComponent<PlayerShip>();
+		playersShipObj = new GameObject();
+		playersShipObj.AddComponent<Ship>();
+		playersShipObj.AddComponent<MeshFilter>();
+		playersShipObj.AddComponent<MeshRenderer>();
+		playersShip = playersShipObj.GetComponent<Ship>();
+		playersShipObj.name = "PlayerShip";
 	}
 
 	void Update(){
@@ -243,7 +367,7 @@ public class ShipConstructor : MonoBehaviour {
 		int finalElement = gridDimensionX * gridDimensionY - 1;
 		Vector3 newCameraPosition = GridCells[finalElement].gridPosition;
 		newCameraPosition.z = -10f;
-		Camera.main.transform.position = newCameraPosition/2f;
+		localCamera.transform.position = newCameraPosition/2f;
 	}
 
 	/*
@@ -272,6 +396,7 @@ public class ShipConstructor : MonoBehaviour {
 				newCell.AddComponent<ShipCell>();
 
 				ShipCell localShipCell = localGridCell.shipCellComponent = newCell.GetComponent<ShipCell>();
+				localShipCell.SetHullColors(ColorData.HullColors);
 
 				int listAdjustment = 0;
 				for (int i = 0; i < 6; i++) {
@@ -280,7 +405,6 @@ public class ShipConstructor : MonoBehaviour {
 						continue;
 					}
 					GridCoordinate neighborCoord = localGridCell.neighborCoordinates[i-listAdjustment];
-					Debug.Log(neighborCoord);
 					int gridElementOfNeighbor = CoordToElement(neighborCoord);			
 					GridCell neighborCell = GridCells[gridElementOfNeighbor];
 					if(neighborCell.hasShipCell){
@@ -297,6 +421,9 @@ public class ShipConstructor : MonoBehaviour {
 					
 				localShipCell.InitializeShipCell();
 				newCell.transform.position = spawnPos;
+				newCell.transform.SetParent(transform);
+				newCell.name = "Ship Cell "+globalCellCount;
+				globalCellCount++;
 			}
 		}
 	}		
@@ -313,11 +440,9 @@ public class ShipConstructor : MonoBehaviour {
 				List<GridCoordinate> neighborCoords 
 					= new List<GridCoordinate>(localGridCell.shipCellComponent.neighborShipCells.Keys);
 
-				//Debug.Log(neighborCoords.Count);
 				for (int i = 0; i < neighborCoords.Count; i++) {
 					int neighborElement = CoordToElement(neighborCoords[i]);
 					GridCell neighborCell = GridCells[neighborElement];
-					ShipCell localShipCell = localGridCell.shipCellComponent;
 					ShipCell neighborShipCell = neighborCell.shipCellComponent;
 
 					Vector2 neighborCheck = 
@@ -328,12 +453,12 @@ public class ShipConstructor : MonoBehaviour {
 							neighborShipCell.hasCellNeighborAt.Remove(j);
 							neighborShipCell.UpdateHullSection(j);
 						}
-					}
-
-					neighborShipCell.UpdateNeighborInts();
-
+					}						
 					neighborShipCell.neighborShipCells.Remove(localGridCell.gridCoordinate);
-					//update hull meshse on relevant cells
+				}
+
+				if(localGridCell.shipCellComponent.hasCellUpgrade){
+					RemoveCustomization(localGridCell.shipCellComponent);
 				}
 
 				Destroy(localGridCell.shipCell);
@@ -383,7 +508,7 @@ public class ShipConstructor : MonoBehaviour {
 		float mouseY = Input.mousePosition.y;
 		
 		Vector3 mouseVector = new Vector3(mouseX, mouseY, 0f);
-		Vector3 mousePosition = Camera.main.ScreenToWorldPoint(mouseVector);
+		Vector3 mousePosition = localCamera.ScreenToWorldPoint(mouseVector);
 		
 		return mousePosition;
 	}
@@ -480,10 +605,128 @@ public class ShipConstructor : MonoBehaviour {
 
 	#endregion
 
+	#region SelectedShipCell Helpers
+
+	void RevertSelectedShipCellTransform(){
+		selectedShipCell.gameObject.transform.position += new Vector3(0f,0f,0.1f);
+		selectedShipCell.gameObject.transform.localScale = Vector3.one;
+	}
+
+	#endregion
+
+	#region ShipCellUpgrade
+
+	public void AddCustomization(Customization CustomizationType){		
+		switch(CustomizationType){
+		case Customization.PowerCore:
+			currentUpgradeList.Add(selectedShipCell, new PowerCore());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.CommandBridge:
+			currentUpgradeList.Add(selectedShipCell, new CommandBridge());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.WeaponModule:
+			currentUpgradeList.Add(selectedShipCell, new WeaponModule());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.ShieldSystem:
+			currentUpgradeList.Add(selectedShipCell, new ShieldSystem());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.WarpDrive:
+			currentUpgradeList.Add(selectedShipCell, new WarpDrive());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.SensorRelay:
+			currentUpgradeList.Add(selectedShipCell, new SensorRelay());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.CrewQuarter:
+			currentUpgradeList.Add(selectedShipCell, new CrewQuarter());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		case Customization.ImpulseEngine:
+			currentUpgradeList.Add(selectedShipCell, new ImpulseEngine());
+			currentUpgradeList[selectedShipCell].AddUpgrade(playersShip);
+			break;
+		}
+
+		UpdateUIStats();
+	}
+
+	public void RemoveCustomization(ShipCell shipCell){
+		currentUpgradeList[shipCell].RemoveUpgrade(playersShip);
+		currentUpgradeList.Remove(shipCell);
+		UpdateUIStats();
+	}
+
+	#endregion
+
+	#region Launch
+
+	void LaunchShipIntoSpace(){
+		BuildShipsSpaceMesh(playersShipObj.GetComponent<MeshFilter>());
+		ShipCell[] shipCells = GetComponentsInChildren<ShipCell>();
+		for (int i = 0; i < shipCells.Length; i++) {
+			shipCells[i].gameObject.SetActive(false);
+		}
+		playersShipObj.GetComponent<MeshRenderer>().material.shader = Shader.Find("Standard");
+		gameObject.SetActive(false);
+	}
+
+	void BuildShipsSpaceMesh(MeshFilter shipFilter){
+		List<Vector3> outerHullVertices = new List<Vector3>();
+		RetrieveOuterHullVertices(outerHullVertices);
+
+		MeshHandler mH = new MeshHandler();
+		mH.AssignOuterHullMeshData(outerHullVertices, hullHeight);
+		mH.ReturnCompleteMesh(shipFilter);
+	}
+
+	void RetrieveOuterHullVertices(List<Vector3> localVertexList){
+		List<GameObject> hullObjs = new List<GameObject>();
+		PopulateHullObjList(hullObjs);
+		for (int i = 0; i < hullObjs.Count; i++) {
+			HullSection localHullSection = hullObjs[i].GetComponent<HullSection>();
+			if(localHullSection.isInnerHull == false){
+				MeshFilter localMF = hullObjs[i].GetComponent<MeshFilter>();									
+
+				Vector3 hullAdjustmentOne = localMF.mesh.vertices[1] - ((localMF.mesh.vertices[1] - localMF.mesh.vertices[0]) * 0.5f);
+				Vector3 hullAdjustmentTwo = localMF.mesh.vertices[2] - ((localMF.mesh.vertices[2] - localMF.mesh.vertices[3]) * 0.5f);
+
+				//There is a potential optimization here b/c this repeats vertices
+				localVertexList.Add(hullAdjustmentOne + hullObjs[i].transform.position);
+				localVertexList.Add(hullAdjustmentTwo + hullObjs[i].transform.position);				
+			}
+		}
+	}
+
+	void PopulateHullObjList(List<GameObject> localHullObjs){
+		ShipCell[] shipCells = GetComponentsInChildren<ShipCell>();
+		for (int i = 0; i < shipCells.Length; i++) {
+			for (int j = 0; j < shipCells[i].hullSectionObjs.Length; j++) {
+				localHullObjs.Add(shipCells[i].hullSectionObjs[j]);
+			}
+		}
+	}
+
+
+
+	#endregion
+
+	void DebugOuterHullSections(){
+		List<GameObject> gOList = new List<GameObject>();
+		PopulateHullObjList(gOList);
+		for (int i = 0; i < gOList.Count; i++) {
+			Debug.Log(gOList[i].GetComponent<HullSection>().isInnerHull);
+		}
+	}
+
 	void DebugCube(Vector3 position){
 		GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		cube.transform.position = position;
-		cube.transform.localScale *= 0.25f;
+		cube.transform.localScale *= 0.025f;
 		cube.GetComponent<Renderer>().material.color = Color.red;
 	}
 
