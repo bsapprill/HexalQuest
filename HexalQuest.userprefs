@@ -1,18 +1,10 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\MeshMethods\HullSection.cs">
+  <MonoDevelop.Ide.Workbench>
     <Files>
-      <File FileName="Assets\Scripts\GameController.cs" Line="50" Column="3" NotebookId="1" />
-      <File FileName="Assets\Scripts\ShipConstruction\ShipConstructor.cs" Line="224" Column="2" NotebookId="1" />
+      <File FileName="Assets\Scripts\GameController.cs" Line="91" Column="1" />
+      <File FileName="Assets\Scripts\ShipConstruction\ShipConstructor.cs" Line="224" Column="2" />
     </Files>
-    <FloatingWindows>
-      <FloatingWindow WindowId="1" X="2389" Y="-11" Width="2880" Height="1706">
-        <Files>
-          <File FileName="Assets\Scripts\MeshMethods\ShipCell.cs" Line="93" Column="74" />
-          <File FileName="Assets\Scripts\MeshMethods\HullSection.cs" Line="33" Column="18" />
-        </Files>
-      </FloatingWindow>
-    </FloatingWindows>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
