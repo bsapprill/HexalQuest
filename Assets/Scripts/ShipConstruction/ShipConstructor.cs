@@ -16,6 +16,8 @@ public class ShipConstructor : MonoBehaviour {
 
 	public GameObject playersShipObj;
 	public float hullHeight;
+	public float shellDepth;
+	public float shellInset;
 	Ship playersShip;
 
 	public Camera localCamera;
@@ -108,6 +110,7 @@ public class ShipConstructor : MonoBehaviour {
 		public BuildStatePanelElements BuildStatePanel;
 		public CellOptionsPanelElements CellOptionsPanel;
 		public StatsPanelElements StatsPanel;
+		public Button LaunchButton;
 	}
 
 	public UISystem UIData;
@@ -665,7 +668,7 @@ public class ShipConstructor : MonoBehaviour {
 
 	#region Launch
 
-	void LaunchShipIntoSpace(){
+	public void LaunchShipIntoSpace(){
 		BuildShipsSpaceMesh(playersShipObj.GetComponent<MeshFilter>());
 		ShipCell[] shipCells = GetComponentsInChildren<ShipCell>();
 		for (int i = 0; i < shipCells.Length; i++) {
@@ -677,14 +680,14 @@ public class ShipConstructor : MonoBehaviour {
 
 	void BuildShipsSpaceMesh(MeshFilter shipFilter){
 		List<Vector3> outerHullVertices = new List<Vector3>();
-		RetrieveOuterHullVertices(outerHullVertices);
-
+		List<Vector3> outerVertexDirections = new List<Vector3> ();
+		RetrieveOuterHullVertices(outerHullVertices, outerVertexDirections);
 		MeshHandler mH = new MeshHandler();
-		mH.AssignOuterHullMeshData(outerHullVertices, hullHeight);
+		mH.AssignOuterHullMeshData(outerHullVertices, outerVertexDirections, hullHeight, shellDepth, shellInset);
 		mH.ReturnCompleteMesh(shipFilter);
 	}
 
-	void RetrieveOuterHullVertices(List<Vector3> localVertexList){
+	void RetrieveOuterHullVertices(List<Vector3> localVertexList, List<Vector3> shellDirectionList){
 		List<GameObject> hullObjs = new List<GameObject>();
 		PopulateHullObjList(hullObjs);
 		for (int i = 0; i < hullObjs.Count; i++) {
@@ -692,12 +695,16 @@ public class ShipConstructor : MonoBehaviour {
 			if(localHullSection.isInnerHull == false){
 				MeshFilter localMF = hullObjs[i].GetComponent<MeshFilter>();									
 
-				Vector3 hullAdjustmentOne = localMF.mesh.vertices[1] - ((localMF.mesh.vertices[1] - localMF.mesh.vertices[0]) * 0.5f);
-				Vector3 hullAdjustmentTwo = localMF.mesh.vertices[2] - ((localMF.mesh.vertices[2] - localMF.mesh.vertices[3]) * 0.5f);
+				Vector3 shellVertexDirectionOne = localMF.mesh.vertices[1] - localMF.mesh.vertices[0];
+				Vector3 shellVertexDirectionTwo = localMF.mesh.vertices [2] - localMF.mesh.vertices [3];
+				Vector3 hullAdjustmentOne = localMF.mesh.vertices[1] - ((shellVertexDirectionOne) * 0.5f);
+				Vector3 hullAdjustmentTwo = localMF.mesh.vertices[2] - ((shellVertexDirectionTwo) * 0.5f);
 
 				//There is a potential optimization here b/c this repeats vertices
 				localVertexList.Add(hullAdjustmentOne + hullObjs[i].transform.position);
-				localVertexList.Add(hullAdjustmentTwo + hullObjs[i].transform.position);				
+				localVertexList.Add(hullAdjustmentTwo + hullObjs[i].transform.position);
+				shellDirectionList.Add ((hullAdjustmentOne * 0.5f).normalized);
+				shellDirectionList.Add((hullAdjustmentTwo * 0.5f).normalized);
 			}
 		}
 	}
@@ -710,9 +717,7 @@ public class ShipConstructor : MonoBehaviour {
 			}
 		}
 	}
-
-
-
+		
 	#endregion
 
 	void DebugOuterHullSections(){

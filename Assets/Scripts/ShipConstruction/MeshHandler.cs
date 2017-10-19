@@ -113,23 +113,46 @@ public class MeshHandler{
 	}
 
 	//This is for building the 3D ship hull
-	public void AssignOuterHullMeshData(List<Vector3> outerHullVertices, float hullHeight){
+	public void AssignOuterHullMeshData(List<Vector3> outerHullVertices, List<Vector3>shellDirections, 
+		float hullHeight, float shellDepth, float shellInset){
 		InitializeDataLists();
-		vertices = outerHullVertices;
+		vertices = new List<Vector3>(outerHullVertices);
 		int initialVertexCount = vertices.Count;
 		for (int i = 0; i < initialVertexCount; i++) {
-			Vector3 upperHullHeight = new Vector3(0f,0f,hullHeight);
+			Vector3 upperHullHeight = new Vector3(0f,0f,-hullHeight);
 			Vector3 upperHullVertex = vertices[i] + upperHullHeight;
 			vertices.Add(upperHullVertex);
+
 		}
 		for (int j = 0; j < initialVertexCount; j=j+2) {
 			triangles.Add(j);
-			triangles.Add(j+initialVertexCount+1);
 			triangles.Add(j+1);
-			triangles.Add(j);
-			triangles.Add(j+initialVertexCount);
 			triangles.Add(j+initialVertexCount+1);
+			triangles.Add(j);
+			triangles.Add(j+initialVertexCount+1);
+			triangles.Add(j+initialVertexCount);
 		}
+
+		int vertexCount = vertices.Count;
+
+
+		//This loop creates the bottom shell vertices first
+		for (int l = 0; l < outerHullVertices.Count; l++) {
+			Vector3 localShellVertex = vertices [initialVertexCount+l];
+			localShellVertex += shellDirections [l] * -shellInset;
+			localShellVertex.z -= shellDepth;
+			vertices.Add (localShellVertex);
+		}
+
+		for (int m = 0; m < outerHullVertices.Count; m+=2) {
+			triangles.Add (vertexCount + m);
+			triangles.Add (initialVertexCount + m);
+			triangles.Add (vertexCount + m + 1);
+			triangles.Add (initialVertexCount + m);
+			triangles.Add (initialVertexCount + m + 1);
+			triangles.Add (vertexCount + m + 1);
+		}
+
 		for (int k = 0; k < vertices.Count; k++) {
 			uvs.Add(Vector2.zero);
 			normals.Add(Vector3.up);
@@ -148,11 +171,17 @@ public class MeshHandler{
         mesh.triangles = triangles.ToArray();
 
 		mesh.RecalculateNormals();
-
         mF.sharedMesh = mesh;        
     }
 
 	public void SetMeshOffset(Vector3 _meshOffset){
 		meshOffset = _meshOffset;
+	}
+
+	void DebugCube(Vector3 position){
+		GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = position;
+		cube.transform.localScale *= 0.025f;
+		cube.GetComponent<Renderer>().material.color = Color.red;
 	}
 }

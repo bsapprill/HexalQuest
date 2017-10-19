@@ -3,22 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TestingScript : MonoBehaviour {
-	public Vector3[] positions;
-	public float dirScale;
-	GameObject[] cubes = new GameObject[3];
-	Vector3 directionToGo;
+	enum TestEnum {One, Two, Three, Four};
+	TestEnum tester;
+	string[] printer = { "One", "Two", "Three", "Four" };
 
 	void Start () {
-		for (int i = 0; i < 3; i++) {
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			cubes[i] = cube;
-			cube.transform.position = positions[i];
-		}
-		directionToGo = positions[2] - positions[1];
+		tester = TestEnum.One;
 	}
 	void Update(){
 		if(Input.GetKeyDown(KeyCode.F)){
+			Debug.Log (printer [(int)tester]);
+			tester++;
+			if(tester == TestEnum.Four){
+				Debug.Log ("good");
+			}
 		}
-		cubes[0].transform.position = directionToGo.normalized * dirScale;
 	}
 }

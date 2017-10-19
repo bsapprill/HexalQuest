@@ -8,7 +8,7 @@ public class ImpulseEngine : CellUpgrade {
 		powerGridDemand = 1;
 		crewDemand = 0;
 		cellMass = 1;
-		enginePower = 1;
+		enginePower = 5;
 	}
 
 	public override void AddUpgrade(Ship playerShip){
